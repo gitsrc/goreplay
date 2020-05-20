@@ -36,6 +36,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 var closeCh chan int
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime |log.Llongfile)
 	closeCh = make(chan int)
 	// // Don't exit on panic
 	// defer func() {

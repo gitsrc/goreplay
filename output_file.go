@@ -212,7 +212,6 @@ func (o *FileOutput) Write(data []byte) (n int, err error) {
 		o.queueLength = 0
 		o.mu.Unlock()
 	}
-
 	o.writer.Write(data)
 	o.writer.Write([]byte(payloadSeparator))
 

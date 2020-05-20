@@ -72,10 +72,10 @@ type Listener struct {
 	trackResponse bool
 	messageExpire time.Duration
 
-	bpfFilter     string
-	timestampType string
+	bpfFilter       string
+	timestampType   string
 	overrideSnapLen bool
-	immediateMode bool
+	immediateMode   bool
 
 	bufferSize int
 
@@ -205,23 +205,35 @@ func (t *Listener) dispatchMessage(message *TCPMessage) {
 
 	if message.IsIncoming {
 		// If there were response before request
-		// log.Println("Looking for Response: ", t.respWithoutReq, message.ResponseAck)
+		//log.Println("Looking for Response: ", t.respWithoutReq, message.ResponseAck)
 		if t.trackResponse {
+			//log.Println("2: Looking for Response.")
 			if respID, ok := t.respWithoutReq[message.ResponseAck]; ok {
+				//log.Println("3: Looking for Response.")
 				if resp, rok := t.messages[respID]; rok {
+					//log.Println("4: Looking for Response.")
 					// if resp.AssocMessage == nil {
-					// log.Println("FOUND RESPONSE")
+					//log.Println("FOUND RESPONSE")
 					resp.setAssocMessage(message)
 					message.setAssocMessage(resp)
 
 					if resp.complete {
-						defer t.dispatchMessage(resp)
+						defer func() {
+							log.Println("5: Looking for Response.")
+							t.dispatchMessage(resp)
+						}()
 					}
 					// }
 				}
 			}
 
+			//			log.Println("6: Looking for Response.")
+			//找到reponse
 			if resp, ok := t.messages[message.ResponseID]; ok {
+				//				log.Println("7: Looking for Response.")
+				//				log.Println(string(resp.Bytes())) //respone 数据
+
+				//				log.Println(string(message.Bytes()))
 				resp.setAssocMessage(message)
 			}
 		}
@@ -243,6 +255,7 @@ func (t *Listener) dispatchMessage(message *TCPMessage) {
 		}
 	}
 
+	//	log.Println("8: Looking for Response.")
 	t.messagesChan <- message
 }
 
@@ -850,16 +863,17 @@ func (t *Listener) processTCPPacket(packet *TCPPacket) {
 
 	// If message contains only single packet immediately dispatch it
 	if message.complete {
-		// log.Println("COMPLETE!", isIncoming, message)
+		//log.Println("COMPLETE!", isIncoming, message)
 		if isIncoming {
 			if t.trackResponse {
-				// log.Println("Found response!", message.ResponseID, t.messages)
+				//				log.Println("1:Found response!", message.ResponseID, t.messages)
 
 				if resp, ok := t.messages[message.ResponseID]; ok {
 					if resp.complete {
+						log.Println("2:resp.complete!")
 						t.dispatchMessage(resp)
 					}
-
+					log.Println("3:t.dispatchMessage(message)!")
 					t.dispatchMessage(message)
 				}
 			} else {
